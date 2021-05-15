@@ -9,9 +9,9 @@ int Multiplication=0;
 
 int main()
 {
-   // forLoop();
+    forLoop();
     // DoWhile();
-    // While();
+   // While();
 
     return 0;
 }
