@@ -158,6 +158,8 @@ lint/tmp/
 *.ori
 *.orig
 *.tmp
+*.txt
+.txt
 
 ##### GPG
 secring.*
