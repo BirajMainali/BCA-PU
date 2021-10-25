@@ -6,8 +6,7 @@
 void addStudentRecord();
 void viewStudentRecord();
 void hasPassword();
-struct student
-{
+struct student {
     int Id;
     char Address[max];
     char Name[max];
@@ -15,8 +14,7 @@ struct student
 };
 
 FILE *fp;
-int main()
-{
+int main() {
 
     char username[max],password[max];
     int choice;
@@ -25,8 +23,7 @@ top:
     gets(username);
     printf("Password :");
     gets(password);
-    if(strcmp(username,"e@e.com")==0 && strcmp(password,"Admin@123")==0)
-    {
+    if(strcmp(username,"x")==0 && strcmp(password,"x")==0) {
 menu:
         system("cls");
         printf("[1] > Add Record\n");
@@ -35,14 +32,14 @@ menu:
         printf("\n\n Enter your choice [1-3] :");
         scanf("%d",&choice);
         system("cls");
-        switch(choice)
-        {
+        switch(choice) {
         case 1 :
             addStudentRecord();
             break;
 
         case 2 :
             viewStudentRecord();
+            goto menu;
             break;
         case 3 :
             printf("Not Implemented exception");
@@ -53,36 +50,32 @@ menu:
             goto menu;
             break;
         }
-    }
-    else
-    {
+    } else {
         system("cls");
         printf("Invalid Login :\n\n");
         goto top;
     }
     return 0;
 }
-void addStudentRecord()
-{
+void addStudentRecord() {
     struct student std;
 newRecord:
     printf("Enter Id :");
     scanf("%d",&std.Id);
     fflush(stdin);
     printf("Enter Name :");
+    fflush(stdin);
     gets(std.Name);
     printf("Enter Address :");
     gets(std.Address);
     printf("Enter Percentage: ");
     scanf("%f",&std.Percentage);
-    fp=fopen("student.txt","w");
+    fp=fopen("student.txt","a");
     fwrite(&std,sizeof(std),1,fp);
-    if(fwrite!=0)
-    {
+    if(fwrite!=0) {
         printf("success...\n\n");
-    }
-    else
-    {
+
+    } else {
         printf("some things went wrong");
         system("cls");
         goto newRecord;
@@ -90,24 +83,24 @@ newRecord:
     }
     fclose(fp);
 }
-void viewStudentRecord()
-{
+void viewStudentRecord() {
     struct student std;
     printf("List of Record: \n\n");
-    printf("--------------------------------------------");
+    printf("--------------------------------------------\n\n");
     fp=fopen("student.txt","r");
-    if(fp == NULL)
-    {
+    if(fp == NULL) {
         system("cls");
         printf("No Record Found \n");
         addStudentRecord();
     }
 
-    fread(&std,sizeof(std),1,fp);
-    printf("%d",std.Id);
-    puts(std.Name);
-    puts(std.Address);
-    printf("%f",std.Percentage);
-
-
+    printf("\tId\tName\t\tAddress\\tPercentage");
+    while(fread(&std,sizeof(std),1,fp)) {
+        printf("%d",std.Id);
+        printf("\t%s",std.Name);
+        printf("\\t%s",std.Address);
+        printf("\\t%f",std.Percentage);
+        getchar();
+    }
+    fclose(fp);
 }
