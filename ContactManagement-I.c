@@ -259,4 +259,5 @@ void Warning(char message[]) {
   system("cls");
   system("color e");
   printf("\n%s\n", message);
+ }
 }
