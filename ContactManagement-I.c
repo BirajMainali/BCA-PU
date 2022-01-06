@@ -37,26 +37,28 @@ struct Admin {
 
 void RegisterUser();
 void Login();
-void Dashboard()
-        void Create();
-        void Update();
-        int Remove(long contactNumber);
-        void MaskAsFavourite(long contactNumber);
-        void Queryable(char queryFirstName[]);
-        int SaveChanges(struct Contact Reqcontact);
-        struct Contact * FindByContact(long contactNumber);
-        int EnsureUniqueContact(long newNumber);
-        char * GetCurrentDate();
-        void Warning(char message[]);
-        void EnsureUniqueUserName(char username[]);
+void Dashboard();
+void Create();
+void Update();
+int Remove(long contactNumber);
+void MaskAsFavourite(long contactNumber);
+void Queryable(char queryFirstName[]);
+int SaveChanges(struct Contact Reqcontact);
+struct Contact * FindByContact(long contactNumber);
+int EnsureUniqueContact(long newNumber);
+char * GetCurrentDate();
+void Warning(char message[]);
+void EnsureUniqueUserName(char username[]);
 
-        FILE * fp;
-        long ContactNumber;
-                int main() {
+FILE * fp;
+long ContactNumber;
+int main() {
+    // Creating initial files.
     fp = FileProvider(store, append);
     fclose(fp);
     fp = FileProvider(authStore, append);
     fclose(fp);
+    
     int choice;
     printf("======================================");
     printf("[1] Login\n");
@@ -64,14 +66,14 @@ void Dashboard()
     printf("Enter your choice :: ");
     scanf("%d", & choice);
     switch (choice) {
-        case 1:
-            Login();
-            break;
-        case 2:
-            RegisterUser();
-        default:
-            printf("Invalid choice");
-            AdminLayout();
+    case 1:
+        Login();
+        break;
+    case 2:
+        RegisterUser();
+    default:
+        printf("Invalid choice");
+        AdminLayout();
     }
     return 0;
 }
