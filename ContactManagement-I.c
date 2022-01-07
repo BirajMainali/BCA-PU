@@ -1,21 +1,25 @@
 #include<stdio.h>
-
 #include<stdlib.h>
-
 #include <time.h>
-
 #include<string.h>
 
 #define max 100
+
 #define write "w"
 #define read "r"
 #define append "a"
+
 #define store "contact.txt"
-#define authStore "auth.txt"
+
+// to remove information.
 #define temp_store "contact_temp.txt"
 
-const int True = 1;
-const int False = 0;
+// authentication store.
+#define authStore "auth.txt"
+
+
+//const int True = 1;
+//const int False = 0;
 
 struct Contact {
     int Id;
@@ -25,9 +29,8 @@ struct Contact {
     char Address[max];
     long Number;
     char IsFavourite;
-    char CreatedAt;
-}
-        contact;
+    char CreatedAt[max];
+}contact;
 
 struct Admin {
     char UserName[max];
@@ -35,6 +38,9 @@ struct Admin {
     char ConfirmPassword[max];
 };
 
+
+// Global function declaration.
+void CreateInitialStore();
 void RegisterUser();
 void Login();
 void Dashboard();
@@ -49,82 +55,97 @@ int EnsureUniqueContact(long newNumber);
 char * GetCurrentDate();
 void Warning(char message[]);
 void EnsureUniqueUserName(char username[]);
+FILE* FileProvider(char fileName[], char mode[]);
 
+// For contact file.
 FILE * fp;
+
+// for auth file.
+FILE *auth_fp;
 long ContactNumber;
 int main() {
-    // Creating initial files.
-    fp = FileProvider(store, append);
-    fclose(fp);
-    fp = FileProvider(authStore, append);
-    fclose(fp);
-    
-    int choice;
-    printf("======================================");
-    printf("[1] Login\n");
-    printf("[2] Register\n");
-    printf("Enter your choice :: ");
-    scanf("%d", & choice);
-    switch (choice) {
-    case 1:
-        Login();
-        break;
-    case 2:
-        RegisterUser();
-    default:
-        printf("Invalid choice");
-        AdminLayout();
-    }
+	
+	// Creating intial file.
+	CreateInitialStore();
+	
+     int choice;
+     top:
+     printf("======================================\n");
+     printf("[1] Login\n");
+     printf("[2] Register\n");
+     printf("Enter your choice :: ");
+     scanf("%d", & choice);
+     switch (choice) {
+     case 1:
+         Login();
+         break;
+     case 2:
+         RegisterUser();
+     default:
+         printf("Invalid choice");
+         goto top;
+     }
     return 0;
 }
 
 void RegisterUser() {
-    struct Admin admin;
+	
+    // [Todo] Validate password lenght min 5 character which include number,latter,symbols,uppercase latter.
+    struct Admin admin;    
     char confirmPassword[max];
+    
     printf("Enter username : ");
     scanf("%s", admin.UserName);
     printf("Enter username : ");
     scanf("%s", admin.Password);
     printf("Enter username : ");
-    scanf("%s", & ConfirmPassword);
+    scanf("%s",confirmPassword);
+    
+    // prevent from duplicate user name.
     EnsureUniqueUserName(admin.UserName);
-    if (strcmp(admin.password, confirmPassword) == 0) {
+    
+    if (strcmp(admin.Password, confirmPassword) != 0) {
         printf("Confirm password is not matching");
         RegisterUser();
     }
-    fp = FileProvider(authStore, append);
-    fwrite( & admin, sizeof(admin), 1, fp);
-    fclose(fp);
+    
+    auth_fp = FileProvider(authStore, append);
+    fwrite(&admin, sizeof(admin), 1, auth_fp);
+    fclose(auth_fp);
     printf("%s successfully registered", admin.UserName);
+    Login();
 }
 
 void EnsureUniqueUserName(char username[]) {
     struct Admin admin;
-    fp = FileProvider(authStore, read);
-    while (fread( & admin, sizeof(admin), 1, fp)) {
-        if (strcmp(admin.UserName, username) != 0) {
+    auth_fp = FileProvider(authStore, read);
+    while (fread( & admin, sizeof(admin), 1, auth_fp)) {
+        if (strcmp(admin.UserName, username) == 0) {
             Warning("user aleady exist");
-            AdminLayout();
+			main();
         }
     }
-    fclose(fp);
+    fclose(auth_fp);
 }
 
 void Login() {
     struct Admin admin;
     char username[max], password[max];
+    top:
     printf("UserName :");
     scanf("%s", username);
     printf("UserName :");
     scanf("%s", password);
-    fp = FileProvider(authStore, read);
-    while (fread( & admin, sizeof(admin), 1, fp)) {
+    auth_fp = FileProvider(authStore, read);
+    while (fread( & admin, sizeof(admin), 1, auth_fp)) {
         if (strcmp(admin.UserName, username) == 0 && strcmp(admin.Password, password) == 0) {
+        	fclose(auth_fp);
             Dashboard();
         }
-        printf("Invalid UserName or password");
-        Login();
     }
+     printf("Invalid UserName or password");
+     fclose(auth_fp);
+     goto top;
 }
 
 void Dashboard() {
@@ -174,6 +195,9 @@ void Dashboard() {
     }
 }
 
+
+// [todo] create new Contact structure for create.
+// [todo] Add IsFavourite while adding new contact. Y denotes for yes. N denotes for no.
 void Create() {
     system("cls");
     printf("FirstName : ");
@@ -192,10 +216,16 @@ void Create() {
 void Update() {
     long contactNumber;
     printf("Enter contact number to update:");
-    scanf("%ld", & contactNumber);
+    scanf("%ld", &contactNumber);
+    
+    // get existing contact.
     struct Contact * FoundContact = FindByContact(contactNumber);
+    
     if (FoundContact != NULL) {
+    	
+    	// copy existing contact.
         struct Contact * WorkableContact = FoundContact;
+        
         printf("FirstName : ");
         scanf("%s", ( * WorkableContact).FirstName);
         printf("LastName : ");
@@ -206,8 +236,13 @@ void Update() {
         scanf("%ld", & ( * WorkableContact).Number);
         printf("Address : ");
         gets(( * WorkableContact).Address);
-        SaveChanges( * WorkableContact);
-        Remove(( * FoundContact).Number);
+        
+        // save updated existing copy contact.
+        SaveChanges(*WorkableContact);
+        
+        // remove existing contact.
+        Remove((*FoundContact).Number);
+        
         printf("Successfully updated.");
         Queryable("");
     } else {
@@ -242,7 +277,7 @@ void MaskAsFavourite(long contactNumber) {
     if (existingContact != NULL) {
         struct Contact * editable = existingContact;
         ( * editable).IsFavourite = 'Y';
-        Remove(( * existingContact).Id);
+        Remove((*existingContact).Id);
         SaveChanges( * editable);
     } else {
         printf("\nContact not found");
@@ -268,14 +303,15 @@ void Queryable(char queryFirstName[]) {
             i++;
         }
     }
+    fclose(fp);
     printf("\n\n======================================\n\n");
     for (c = 0; c < i; ++c) {
-        printf("FullName : %s %s", contacts[i].FirstName, contacts[i].LastName);
-        printf("\nNumber: %ld", contacts[i].Number);
-        printf("\nEmail: %s", contacts[i].Email);
-        printf("\nCreatedAt: %s", contacts[i].CreatedAt);
-        printf("\nAddress : %s", contacts[i].Address);
-        if (contacts[i].IsFavourite == Active) {
+        printf("FullName : %s %s", contacts[c].FirstName, contacts[c].LastName);
+        printf("\nNumber: %ld", contacts[c].Number);
+        printf("\nEmail: %s", contacts[c].Email);
+        printf("\nCreatedAt: %s", contacts[c].CreatedAt);
+        printf("\nAddress : %s", contacts[c].Address);
+        if (contacts[c].IsFavourite == 'Y') {
             printf("#");
         }
         printf("\n\n======================================\n\n");
@@ -287,7 +323,7 @@ int SaveChanges(struct Contact ReqContact) {
     if (EnsureUniqueContact(ReqContact.Number) == 1) {
         Warning("Duplicate contact number");
     }
-    ReqContact.CreatedAt = GetCurrentDate();
+    strcpy(ReqContact.CreatedAt,GetCurrentDate());
     ReqContact.Id = rand();
     fp = FileProvider(store, append);
     fwrite( & ReqContact, sizeof(ReqContact), 1, fp);
@@ -337,4 +373,11 @@ void Warning(char message[]) {
     system("cls");
     system("color e");
     printf("\n%s\n", message);
+}
+
+void CreateInitialStore(){
+	fp = FileProvider(store, append);
+    fclose(fp);
+    auth_fp = FileProvider(authStore, append);
+    fclose(auth_fp);
 }
