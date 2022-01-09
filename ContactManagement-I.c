@@ -14,18 +14,14 @@
 #define temp_store "contact_temp.txt"
 #define authStore "auth.txt"
 
-
-const int True = 1;
-const int False = 0;
-
 struct Contact {
     int Id;
+    long Number;
+    int IsFavourite;
     char FirstName[max];
     char LastName[max];
     char Email[max];
     char Address[max];
-    long Number;
-    int IsFavourite;
     char CreatedAt[max];
 }contact;
 
@@ -35,7 +31,7 @@ struct Admin {
     char ConfirmPassword[max];
 };
 
-
+void Next();
 void CreateInitialStore();
 char* GetPassword();
 void RegisterUser();
@@ -45,7 +41,7 @@ void Create();
 void Update();
 int Remove(long contactNumber);
 void MaskAsFavourite(long contactNumber);
-void Queryable(char queryFirstName[]);
+void View(char queryFirstName[]);
 int SaveChanges(struct Contact Reqcontact);
 struct Contact * FindByContact(long contactNumber);
 int EnsureUniqueContact(long newNumber);
@@ -59,6 +55,7 @@ FILE * fp;
 FILE *auth_fp;
 long ContactNumber;
 int main() {
+	system("color a");
 	CreateInitialStore();
      int choice;
      top:
@@ -73,6 +70,7 @@ int main() {
          break;
      case 2:
          RegisterUser();
+         break;
      default:
          printf("Invalid choice");
          goto top;
@@ -81,15 +79,13 @@ int main() {
 }
 
 void RegisterUser() {
-	
-    // [Todo] Validate password lenght min 5 character which include number,latter,symbols,uppercase latter.
     struct Admin admin;    
     char confirmPassword[max];
-    
     printf("Enter username : ");
     scanf("%s", admin.UserName);
+    printf("Enter Password :");
    strcpy(admin.Password, GetPassword());
-    printf("Enter Confirm : ");
+    printf("\nEnter ConfirmPassword :");
     strcpy(confirmPassword, GetPassword());
     EnsureUniqueUserName(admin.UserName);
     if (strcmp(admin.Password, confirmPassword) != 0) {
@@ -100,7 +96,7 @@ void RegisterUser() {
     auth_fp = FileProvider(authStore, append);
     fwrite(&admin, sizeof(admin), 1, auth_fp);
     fclose(auth_fp);
-    printf("%s successfully registered", admin.UserName);
+    printf("%s successfully registered\n\n", admin.UserName);
     Login();
 }
 
@@ -110,7 +106,7 @@ void EnsureUniqueUserName(char username[]) {
     while (fread( & admin, sizeof(admin), 1, auth_fp)) {
         if (strcmp(admin.UserName, username) == 0) {
             Warning("user aleady exist");
-			main();
+			RegisterUser();
         }
     }
     fclose(auth_fp);
@@ -120,8 +116,9 @@ void Login() {
     struct Admin admin;
     char username[max], password[max];
     top:
-    printf("UserName :");
+    printf("UserName :: ");
     scanf("%s", username);
+    printf("Passwords:: ");
     strcpy(password, GetPassword());
     auth_fp = FileProvider(authStore, read);
     while (fread( & admin, sizeof(admin), 1, auth_fp)) {
@@ -130,16 +127,20 @@ void Login() {
             Dashboard();
         }
     }
-     printf("Invalid UserName or password");
+    system("cls");
+     printf("Invalid username or password\n");
      fclose(auth_fp);
      goto top;
 }
 
 void Dashboard() {
+	system("cls");
     int Choice;
     char query[max];
     Menu:
-    printf("\n\n-----------------Menu------------------\n");
+    printf("\n==========================================================\n");
+    printf("\n========================:: Menu ::=======================\n");
+    printf("\n==========================================================\n\n");
     printf("1. Add Contact\n");
     printf("2. View Contact\n");
     printf("3. Search Contact\n");
@@ -153,12 +154,12 @@ void Dashboard() {
             Create();
             break;
         case 2:
-            Queryable("");
+            View("");
             break;
         case 3:
             printf("Enter name to filter : ");
             scanf("%s", query);
-            Queryable(query);
+            View(query);
             break;
         case 4:
             Update();
@@ -166,10 +167,10 @@ void Dashboard() {
         case 5:
             printf("Enter contact number to remove:");
             scanf("%ld", & ContactNumber);
-            if (Remove(ContactNumber) != 200) {
+            if (Remove(ContactNumber) == 0) {
                 printf("Contact removed successfully");
             } else {
-                printf("Somethings went wrong while removing the contact");
+                printf("Contact not found");
             }
         case 6:
             printf("Contact Number:");
@@ -178,13 +179,11 @@ void Dashboard() {
             break;
         default:
             Warning("Invalid Choice");
+            goto Menu;
             break;
     }
 }
 
-
-// [todo] create new Contact structure for create.
-// [todo] Add IsFavourite while adding new contact. Y denotes for yes. N denotes for no.
 void Create() {
     system("cls");
     printf("[1] For Favourite");
@@ -199,9 +198,16 @@ void Create() {
     scanf("%ld", & contact.Number);
     printf("Address : ");
     scanf("%s", & contact.Address);
-    printf("Favourite : ");
-    scanf("%d", contact.IsFavourite);
-    SaveChanges(contact);
+    printf("Favorite : ");
+    scanf("%d", &contact.IsFavourite);
+    if(SaveChanges(contact) == 0){
+        printf("Contact added successfully");
+    }
+    else {
+        printf("Contact not added");
+        
+    }
+	Next();
 }
 
 void Update() {
@@ -222,12 +228,13 @@ void Update() {
         printf("Address : ");
         scanf("%s",( * WorkableContact).Address);
         SaveChanges(*WorkableContact);
-        Remove((*FoundContact).Number);
-        printf("Successfully updated.");
-        Queryable("");
+        if(Remove((*FoundContact).Number)==0){
+        	printf("Successfully updated.");
+		}
+        View("");
     } else {
         Warning("Contact not found");
-        Dashboard();
+        Next();
     }
 }
 
@@ -249,27 +256,29 @@ int Remove(long ContactNumber) {
         fclose(fp_temp);
         remove(store);
         rename(temp_store, store);
-        main();
+        return 0;
     }
+    return -1;
 }
 
 void MaskAsFavourite(long contactNumber) {
     struct Contact * existingContact = FindByContact(contactNumber);
     if (existingContact != NULL) {
         struct Contact * editable = existingContact;
-        ( * editable).IsFavourite = 'Y';
+        (*editable).IsFavourite = 1;
         Remove((*existingContact).Id);
-        SaveChanges( * editable);
+        SaveChanges(*editable);
     } else {
         printf("\nContact not found");
     }
+    Next();
 }
 
-void Queryable(char queryFirstName[]) {
+void View(char queryFirstName[]) {
     int i = 0;
     int c = 0;
     struct Contact item;
-    struct Contact contacts[10000];
+    struct Contact contacts[] = {};
     fp = FileProvider(store, read);
     if (strlen(queryFirstName) > 1) {
         while (fread( & item, sizeof(item), 1, fp)) {
@@ -297,19 +306,19 @@ void Queryable(char queryFirstName[]) {
         }
         printf("\n\n======================================\n\n");
     }
+    Next();
 }
 
 int SaveChanges(struct Contact ReqContact) {
-    printf("%ld", ReqContact.Number);
     if (EnsureUniqueContact(ReqContact.Number) == 1) {
         Warning("Duplicate contact number");
+        return -1;
     }
     strcpy(ReqContact.CreatedAt,GetCurrentDate());
     ReqContact.Id = rand();
     fp = FileProvider(store, append);
-    fwrite( & ReqContact, sizeof(ReqContact), 1, fp);
+    fwrite(&ReqContact, sizeof(ReqContact), 1, fp);
     fclose(fp);
-    Queryable("");
     return 0;
 }
 
@@ -356,24 +365,28 @@ void Warning(char message[]) {
     printf("\n%s\n", message);
 }
 
+char* GetPassword() {
+    char password[55];
+    int p=0;
+    do{
+        password[p]=getch();
+        if(password[p]!='\r') {
+            printf("*");
+        }
+        p++;
+    }while(password[p-1]!='\r');
+    password[p-1]='\0';
+    return password;
+}
+
 void CreateInitialStore(){
 	fp = FileProvider(store, append);
     fclose(fp);
     auth_fp = FileProvider(authStore, append);
     fclose(auth_fp);
 }
-char* GetPassword()
-{
-    char password[55];
-    printf("password:");
-    int p=0;
-    do{
-        password[p]=getch();
-        if(password[p]!='\r'){
-            printf("*");
-        }
-        p++;
-    } while(password[p-1]!='\r');
-    password[p-1]='\0';
-    return password;
+void Next() {
+	printf("\n\nPress [Enter] to continue :: ");
+	int command = getch();
+	command == 13 ? Dashboard() : exit(1);
 }
