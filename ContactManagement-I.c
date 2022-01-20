@@ -2,14 +2,13 @@
 #include<stdlib.h>
 #include <time.h>
 #include<string.h>
+#include <windows.h>
 #include<conio.h>
 
-#define max 100
-
+#define _max 100
 #define write "w"
 #define read "r"
 #define append "a"
-
 #define store "contact.txt"
 #define temp_store "contact_temp.txt"
 #define authStore "auth.txt"
@@ -18,18 +17,19 @@ struct Contact {
     int Id;
     long Number;
     int IsFavourite;
-    char FirstName[max];
-    char LastName[max];
-    char Email[max];
-    char Address[max];
-    char CreatedAt[max];
+    char FirstName[_max];
+    char LastName[_max];
+    char Email[_max];
+    char Address[_max];
+    char CreatedAt[_max];
 }contact;
 
 struct Admin {
-    char UserName[max];
-    char Password[max];
-    char ConfirmPassword[max];
+    char UserName[_max];
+    char Password[_max];
+    char ConfirmPassword[_max];
 };
+
 
 void Next();
 void CreateInitialStore();
@@ -48,6 +48,7 @@ int EnsureUniqueContact(long newNumber);
 char * GetCurrentDate();
 void Warning(char message[]);
 void EnsureUniqueUserName(char username[]);
+ void Title(char title[]);
 FILE* FileProvider(char fileName[], char mode[]);
 
 FILE * fp;
@@ -57,6 +58,7 @@ long ContactNumber;
 int main() {
 	system("color a");
 	CreateInitialStore();
+	Title("Authentication");
      int choice;
      top:
      printf("======================================\n");
@@ -80,7 +82,7 @@ int main() {
 
 void RegisterUser() {
     struct Admin admin;    
-    char confirmPassword[max];
+    char confirmPassword[_max];
     printf("Enter username : ");
     scanf("%s", admin.UserName);
     printf("Enter Password :");
@@ -114,7 +116,7 @@ void EnsureUniqueUserName(char username[]) {
 
 void Login() {
     struct Admin admin;
-    char username[max], password[max];
+    char username[_max], password[_max];
     top:
     printf("UserName :: ");
     scanf("%s", username);
@@ -136,7 +138,7 @@ void Login() {
 void Dashboard() {
 	system("cls");
     int Choice;
-    char query[max];
+    char query[_max];
     Menu:
     printf("\n==========================================================\n");
     printf("\n========================:: Menu ::=======================\n");
@@ -384,6 +386,9 @@ void CreateInitialStore(){
     fclose(fp);
     auth_fp = FileProvider(authStore, append);
     fclose(auth_fp);
+}
+ void Title(char title[]) {
+	SetConsoleTitle("Contact Management System");
 }
 void Next() {
 	printf("\n\nPress [Enter] to continue :: ");
