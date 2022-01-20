@@ -1,13 +1,8 @@
 #include<stdio.h>
-
 #include<stdlib.h>
-
 #include <time.h>
-
 #include<string.h>
-
 #include <windows.h>
-
 #include<conio.h>
 
 #define _max 100
@@ -96,8 +91,8 @@ void RegisterUser() {
   strcpy(confirmPassword, GetPassword());
   EnsureUniqueUserName(admin.UserName);
   if (strcmp(admin.Password, confirmPassword) != 0) {
-    printf("Confirm password is not matching");
-    RegisterUser();
+      printf("Confirm password is not matching");
+      RegisterUser();
   }
 
   auth_fp = FileProvider(authStore, append);
@@ -145,7 +140,7 @@ void Dashboard() {
   int Choice;
   char query[_max];
   Menu:
-    printf("\n==========================================================\n");
+  printf("\n==========================================================\n");
   printf("\n========================:: Menu ::=======================\n");
   printf("\n==========================================================\n\n");
   printf("1. Add Contact\n");
@@ -208,9 +203,9 @@ void Create() {
   printf("Favorite : ");
   scanf("%d", & contact.IsFavourite);
   if (SaveChanges(contact) == 0) {
-    printf("Contact added successfully");
+      printf("Contact added successfully");
   } else {
-    printf("Contact not added");
+      printf("Contact not added");
 
   }
   Next();
