@@ -473,6 +473,7 @@ char *GetPassword()
 		i++;
 		printf("*");
 	}
+	password[i]='\0';
 	return password;
 }
 
