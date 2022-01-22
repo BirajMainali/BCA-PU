@@ -462,18 +462,18 @@ void Warning(char message[])
 
 char *GetPassword()
 {
-   char password[55];
-   int p = 0;
-   do {
-      password[p] = getch();
-      if (password[p] != '\r')
-      {
-         printf("*");
-      }
-      p++;
-   } while (password[p - 1] != '\r');
-   password[p - 1] = '\0';
-   return password;
+   char password[50];
+	int i=0;
+	int c;
+	for(;;) {
+		c = getch();
+		if(c == 13) break;
+		if(c == 8) continue;
+		password[i] = c;
+		i++;
+		printf("*");
+	}
+	return password;
 }
 
 void CreateInitialStore()
