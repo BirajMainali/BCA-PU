@@ -25,15 +25,12 @@ struct Contact {
     char CreatedAt[_max];
     char RecUserName[_max];
     bool IsValid;
-}
-        contact;
+};
 
 struct Admin {
     char UserName[_max];
     char Password[_max];
-}
-admin;
-
+};
 void RegisterUser();
 
 void Login();
@@ -43,6 +40,8 @@ void Dashboard();
 void CreateContactDetail();
 
 void UpdateContactDetail();
+
+void CurrnetUserContcatList();
 
 void Details(struct Contact contact);
 
@@ -78,11 +77,12 @@ FILE *FileProvider(char fileName[], char mode[]);
 FILE *fp;
 
 FILE *auth_fp;
+char Username[_max];
 long ContactNumber;
 int Favorite;
 
 int main() {
-    system("color a");
+    system("color 5f");
     CreateInitialStore();
     SetConsoleTitle("Contact Management System");
     int choice;
@@ -129,6 +129,7 @@ void RegisterUser() {
 }
 
 void EnsureUniqueUserName(char username[]) {
+	struct Admin admin;
     auth_fp = FileProvider(authStore, read);
     while (fread(&admin, sizeof(admin), 1, auth_fp)) {
         if (strcmp(admin.UserName, username) == 0) {
@@ -140,6 +141,7 @@ void EnsureUniqueUserName(char username[]) {
 }
 
 void Login() {
+	struct Admin admin;
     char username[_max], password[_max];
     top:
     Display("Login");
@@ -151,7 +153,7 @@ void Login() {
     while (fread(&admin, sizeof(admin), 1, auth_fp)) {
         if (strcmp(admin.UserName, username) == 0 && strcmp(admin.Password, password) == 0) {
             fclose(auth_fp);
-            strcpy(admin.UserName, username);
+            strcpy(Username, username);
             Dashboard();
         }
     }
@@ -173,6 +175,7 @@ void Dashboard() {
     printf("\t\t\t\t\t4. Update Contact\n");
     printf("\t\t\t\t\t5. Delete Contact\n");
     printf("\t\t\t\t\t6. Favorite\n");
+    printf("\t\t\t\t\t7. View my Contact\n\n");
     printf("\t\t\t\t\tEnter your choice: ");
     scanf("%d", &Choice);
     switch (Choice) {
@@ -201,17 +204,7 @@ void Dashboard() {
             scanf("%ld", &ContactNumber);
             struct Contact info = FindByContact(ContactNumber);
             if (info.IsValid) {
-                printf("\n\n\t\t\t\t.....................................................\n\n");
-                printf("\t\t\t\t\tFullName : %s %s", info.FirstName, info.LastName);
-                if (info.IsFavorite) {
-                    printf("  #Favorite");
-                }
-                printf("\n\t\t\t\t\tNumber: %ld", info.Number);
-                printf("\n\t\t\t\t\tEmail: %s", info.Email);
-                printf("\n\t\t\t\t\tAddress : %s", info.Address);
-                printf("\n\t\t\t\t\tCreated By: %s", info.RecUserName);
-                printf("\n\t\t\t\t\tCreatedAt: %s", info.CreatedAt);
-                printf("\n\n\t\t\t\t.....................................................\n\n");
+                Details(info);
                 printf("\t\t\t\t\tPress[Enter] to Remove :: ");
                 int command = getch();
                 command == 13 ? RemoveContact(info.Number) : Dashboard();
@@ -219,7 +212,6 @@ void Dashboard() {
             } else {
                 printf("\n\t\t\tContact not found");
             }
-
         case 6:
             system("cls");
             Display("Mark as favorite");
@@ -227,6 +219,11 @@ void Dashboard() {
             scanf("%ld", &ContactNumber);
             MarkFavorite(ContactNumber);
             break;
+        case 7:
+        	Display("My contact list");
+			CurrnetUserContcatList();    
+			Next();
+			break;
         default:
             Warning("Invalid Choice");
             goto Menu;
@@ -235,6 +232,7 @@ void Dashboard() {
 }
 
 void CreateContactDetail() {
+	struct Contact contact;
     Display("Add new contact");
     printf("\t\t\tEnter First Name : ");
     scanf("%s", contact.FirstName);
@@ -264,6 +262,7 @@ void CreateContactDetail() {
 }
 
 void UpdateContactDetail() {
+	struct Contact contact;
     long contactNumber;
     printf("\t\t\tEnter contact number to update: ");
     scanf("%ld", &contactNumber);
@@ -302,6 +301,7 @@ void UpdateContactDetail() {
 
 int RemoveContact(long ContactNumber) {
     int flag = 0;
+    struct Contact contact;
     FILE *fp_temp = FileProvider(temp_store, append);
     FILE *fp = FileProvider(store, read);
     struct Contact removable = FindByContact(ContactNumber);
@@ -354,18 +354,29 @@ void ViewContactList(char queryFirstName[]) {
     Next();
 }
 
+void CurrnetUserContcatList() {
+	FILE *fp = FileProvider(store, read);
+	struct Contact authContact;
+	while(fread(&authContact, sizeof(authContact),1,fp)){
+		if(strcmp(Username,authContact.RecUserName) == 0) {
+			Details(authContact);
+		}
+	}
+	fclose(fp);
+}
+
 
 void Details(struct Contact contact) {
 
-    printf("\t\t\t\t\tFullName : %s %s", contact.FirstName, contact.LastName);
+    printf("\t\t\t\tFullName : %s %s ", contact.FirstName, contact.LastName);
     if (contact.IsFavorite) {
-        printf(" #Favorite");
+        printf("#Favorite");
     }
-    printf("\n\t\t\t\t\tNumber: %ld", contact.Number);
-    printf("\n\t\t\t\t\tEmail: %s", contact.Email);
-    printf("\n\t\t\t\t\tAddress : %s", contact.Address);
-    printf("\n\t\t\t\t\tCreated By: %s", contact.RecUserName);
-    printf("\n\t\t\t\t\tCreatedAt: %s", contact.CreatedAt);
+    printf("\n\t\t\t\tNumber: %ld", contact.Number);
+    printf("\n\t\t\t\tEmail: %s", contact.Email);
+    printf("\n\t\t\t\tAddress : %s", contact.Address);
+    printf("\n\t\t\t\tCreated By: %s", contact.RecUserName);
+    printf("\n\t\t\t\tCreatedAt: %s", contact.CreatedAt);
     printf("\n\n\t\t\t\t------------------------------------------------\n\n");
 }
 
@@ -377,7 +388,7 @@ int SaveChanges(struct Contact ReqContact) {
     }
     strcpy(ReqContact.CreatedAt, GetCurrentDate());
     ReqContact.IsValid = 1;
-    strcpy(ReqContact.RecUserName, admin.UserName);
+    strcpy(ReqContact.RecUserName, Username);
     ReqContact.Id = rand();
     fwrite(&ReqContact, sizeof(ReqContact), 1, fp);
     fclose(fp);
@@ -454,8 +465,8 @@ void CreateInitialStore() {
 void Display(char text[]) {
     system("cls");
     printf("\t\t\t-------------------------------------------------------------\n");
-    printf("\t\t\t\t\t[ %s - Login: %s ]\n", text, admin.UserName);
-    printf("\t\t\t-------------------------------------------------------------\n");
+    printf("\t\t\t\t[ %s - Login: %s ]\n", text, Username);
+    printf("\t\t\t-------------------------------------------------------------\n\n");
 }
 
 void Next() {
