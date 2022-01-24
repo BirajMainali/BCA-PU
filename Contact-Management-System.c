@@ -16,7 +16,7 @@
 
 struct Contact {
     int Id;
-    long Number;
+    int Number;
     bool IsFavorite;
     char FirstName[_max];
     char LastName[_max];
@@ -78,11 +78,11 @@ FILE *fp;
 
 FILE *auth_fp;
 char Username[_max];
-long ContactNumber;
+int ContactNumber;
 int Favorite;
 
 int main() {
-    system("color 5f");
+    system("Color F2");
     CreateInitialStore();
     SetConsoleTitle("Contact Management System");
     int choice;
@@ -175,7 +175,8 @@ void Dashboard() {
     printf("\t\t\t\t\t4. Update Contact\n");
     printf("\t\t\t\t\t5. Delete Contact\n");
     printf("\t\t\t\t\t6. Favorite\n");
-    printf("\t\t\t\t\t7. View my Contact\n\n");
+    printf("\t\t\t\t\t7. View my Contact\n");
+    printf("\t\t\t\t\t8. Logout\n\n");
     printf("\t\t\t\t\tEnter your choice: ");
     scanf("%d", &Choice);
     switch (Choice) {
@@ -200,15 +201,20 @@ void Dashboard() {
         case 5:
             system("cls");
             Display("Remove contact");
-            printf("\t\t\t\t\tEnter contact number to remove:");
-            scanf("%ld", &ContactNumber);
+            printf("\t\t\tEnter contact number to remove: ");
+            scanf("%d", &ContactNumber);
             struct Contact info = FindByContact(ContactNumber);
             if (info.IsValid) {
                 Details(info);
-                printf("\t\t\t\t\tPress[Enter] to Remove :: ");
+                printf("\t\t\t\t\tPress[Y] to Remove :: ");
                 int command = getch();
-                command == 13 ? RemoveContact(info.Number) : Dashboard();
-                printf("\n\t\t\tContact removed successfully");
+                if(command == 89){
+                	RemoveContact(info.Number);
+                	printf("\n\t\t\tContact removed successfully");
+				}
+				else {
+					goto Menu;	
+				}
             } else {
                 printf("\n\t\t\tContact not found");
             }
@@ -224,6 +230,9 @@ void Dashboard() {
 			CurrnetUserContcatList();    
 			Next();
 			break;
+		  case 8:
+        	main();
+			break;	
         default:
             Warning("Invalid Choice");
             goto Menu;
@@ -244,7 +253,7 @@ void CreateContactDetail() {
     scanf("%s", contact.Email);
     fflush(stdin);
     printf("\t\t\tEnter Contact No : ");
-    scanf("%ld", &contact.Number);
+    scanf("%d", &contact.Number);
     fflush(stdin);
     printf("\t\t\tEnter Address : ");
     scanf("%[^\n]s", &contact.Address);
@@ -279,7 +288,7 @@ void UpdateContactDetail() {
         scanf("%s", contact.Email);
         fflush(stdin);
         printf("\t\t\tEnter Contact No : ");
-        scanf("%ld", &contact.Number);
+        scanf("%d", &contact.Number);
         fflush(stdin);
         printf("\t\t\tEnter Address : ");
         scanf("%[^\n]s", &contact.Address);
@@ -372,11 +381,11 @@ void Details(struct Contact contact) {
     if (contact.IsFavorite) {
         printf("#Favorite");
     }
-    printf("\n\t\t\t\tNumber: %ld", contact.Number);
-    printf("\n\t\t\t\tEmail: %s", contact.Email);
-    printf("\n\t\t\t\tAddress : %s", contact.Address);
-    printf("\n\t\t\t\tCreated By: %s", contact.RecUserName);
-    printf("\n\t\t\t\tCreatedAt: %s", contact.CreatedAt);
+    printf("\n\t\t\t\tNumber: %d ", contact.Number);
+    printf("\n\t\t\t\tEmail: %s ", contact.Email);
+    printf("\n\t\t\t\tAddress : %s ", contact.Address);
+    printf("\n\t\t\t\tCreated By: %s ", contact.RecUserName);
+    printf("\n\t\t\t\tCreatedAt: %s ", contact.CreatedAt);
     printf("\n\n\t\t\t\t------------------------------------------------\n\n");
 }
 
@@ -435,7 +444,6 @@ char *GetCurrentDate() {
 
 void Warning(char message[]) {
     system("cls");
-    system("color e");
     printf("\n\t\t\t%s\n", message);
 }
 
