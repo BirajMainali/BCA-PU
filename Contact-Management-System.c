@@ -177,22 +177,22 @@ void Dashboard() {
     scanf("%d", &Choice);
     switch (Choice) {
         case 1:
-            Create();
+            CreateContactDetail();
             break;
         case 2:
-            View("");
+            ViewContactList("");
             break;
         case 3:
             system("cls");
             Display("Sort contact list by name");
             printf("\t\t\t\t\t Name : ");
             scanf("%s", query);
-            View(query);
+            ViewContactList(query);
             break;
         case 4:
             system("cls");
             Display("Update Contact");
-            Update();
+            UpdateContactDetail();
             break;
         case 5:
             system("cls");
@@ -214,7 +214,7 @@ void Dashboard() {
                 printf("\n\n\t\t\t\t.....................................................\n\n");
                 printf("\t\t\t\t\tPress[Enter] to Remove :: ");
                 int command = getch();
-                command == 13 ? Remove(info.Number) : Dashboard();
+                command == 13 ? RemoveContact(info.Number) : Dashboard();
                 printf("\n\t\t\tContact removed successfully");
             } else {
                 printf("\n\t\t\tContact not found");
@@ -290,7 +290,7 @@ void UpdateContactDetail() {
         fflush(stdin);
         contact.IsFavorite = Favorite;
         SaveChanges(Copied);
-        if (Remove(FoundContact.Number) == 0) {
+        if (RemoveContact(FoundContact.Number) == 0) {
             printf("\t\t\tSuccessfully updated.");
         }
         Details(Copied);
@@ -327,7 +327,7 @@ void MarkFavorite(long contactNumber) {
     if (existingContact.IsValid) {
         struct Contact editable = existingContact;
         editable.IsFavorite = 1;
-        Remove(existingContact.Number);
+        RemoveContact(existingContact.Number);
         SaveChanges(editable);
     } else {
         printf("\n\t\t\tContact not found\n");
@@ -336,30 +336,21 @@ void MarkFavorite(long contactNumber) {
 }
 
 void ViewContactList(char queryFirstName[]) {
-    int i = 0;
-    int c = 0;
+    Display("Contact List");
     FILE *fp = FileProvider(store, read);
     struct Contact item;
-    struct Contact contacts[] = {};
     if (strlen(queryFirstName) > 1) {
         while (fread(&item, sizeof(item), 1, fp)) {
             if (strcmp(item.FirstName, queryFirstName) == 0) {
-                contacts[i] = item;
-                i++;
+                Details(item);
             }
         }
     } else {
         while (fread(&item, sizeof(item), 1, fp)) {
-            contacts[i] = item;
-            i++;
+        	Details(item);
         }
     }
     fclose(fp);
-    system("cls");
-    Display("Contact List");
-    for (c = 0; c < i; ++c) {
-        Details(contacts[c]);
-    }
     Next();
 }
 
@@ -370,12 +361,12 @@ void Details(struct Contact contact) {
     if (contact.IsFavorite) {
         printf(" #Favorite");
     }
-    printf("\n\t\t\t\tNumber: %ld", contact.Number);
+    printf("\n\t\t\t\t\tNumber: %ld", contact.Number);
     printf("\n\t\t\t\t\tEmail: %s", contact.Email);
     printf("\n\t\t\t\t\tAddress : %s", contact.Address);
     printf("\n\t\t\t\t\tCreated By: %s", contact.RecUserName);
     printf("\n\t\t\t\t\tCreatedAt: %s", contact.CreatedAt);
-    printf("\n\n\t\t\t\t.....................................................\n\n");
+    printf("\n\n\t\t\t\t------------------------------------------------\n\n");
 }
 
 int SaveChanges(struct Contact ReqContact) {
