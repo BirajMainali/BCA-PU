@@ -3,8 +3,8 @@
 #include <stdlib.h>
 #include <time.h>
 #include <string.h>
-#include <windows.h>
-#include <conio.h>
+#include<windows.h>
+#include<conio.h>
 
 #define _max 100
 #define write "w"
@@ -16,7 +16,7 @@
 
 struct Contact {
     int Id;
-    int Number;
+    char Number[_max];
     bool IsFavorite;
     char FirstName[_max];
     char LastName[_max];
@@ -45,7 +45,7 @@ void CurrnetUserContcatList();
 
 void Details(struct Contact contact);
 
-int RemoveContact(long contactNumber);
+int RemoveContact(char contactNumber[]);
 
 void MarkFavorite(long contactNumber);
 
@@ -53,9 +53,9 @@ void ViewContactList(char queryFirstName[]);
 
 int SaveChanges(struct Contact Reqcontact);
 
-struct Contact FindByContact(long contactNumber);
+struct Contact FindByContact(char contactNumber[]);
 
-int EnsureUniqueContact(long newNumber);
+int EnsureUniqueContact(char newNumber[]);
 
 char *GetCurrentDate();
 
@@ -78,7 +78,7 @@ FILE *fp;
 
 FILE *auth_fp;
 char Username[_max];
-int ContactNumber;
+char ContactNumber[];
 int Favorite;
 
 int main() {
@@ -201,8 +201,8 @@ void Dashboard() {
         case 5:
             system("cls");
             Display("Remove contact");
-            printf("\t\t\tEnter contact number to remove: ");
-            scanf("%d", &ContactNumber);
+            printf("\t\t\t\tEnter contact number to remove: ");
+            scanf("%s", ContactNumber);
             struct Contact info = FindByContact(ContactNumber);
             if (info.IsValid) {
                 Details(info);
@@ -222,7 +222,7 @@ void Dashboard() {
             system("cls");
             Display("Mark as favorite");
             printf("\t\t\tContact Number:");
-            scanf("%ld", &ContactNumber);
+            scanf("%s", &ContactNumber);
             MarkFavorite(ContactNumber);
             break;
         case 7:
@@ -253,7 +253,7 @@ void CreateContactDetail() {
     scanf("%s", contact.Email);
     fflush(stdin);
     printf("\t\t\tEnter Contact No : ");
-    scanf("%d", &contact.Number);
+    scanf("%[^\n]s", &contact.Number);
     fflush(stdin);
     printf("\t\t\tEnter Address : ");
     scanf("%[^\n]s", &contact.Address);
@@ -274,7 +274,7 @@ void UpdateContactDetail() {
 	struct Contact contact;
     long contactNumber;
     printf("\t\t\tEnter contact number to update: ");
-    scanf("%ld", &contactNumber);
+    scanf("%s", &contactNumber);
     struct Contact FoundContact = FindByContact(contactNumber);
     if (FoundContact.IsValid) {
         struct Contact Copied = FoundContact;
@@ -288,7 +288,7 @@ void UpdateContactDetail() {
         scanf("%s", contact.Email);
         fflush(stdin);
         printf("\t\t\tEnter Contact No : ");
-        scanf("%d", &contact.Number);
+        scanf("%[^\n]s", &contact.Number);
         fflush(stdin);
         printf("\t\t\tEnter Address : ");
         scanf("%[^\n]s", &contact.Address);
@@ -308,7 +308,7 @@ void UpdateContactDetail() {
     }
 }
 
-int RemoveContact(long ContactNumber) {
+int RemoveContact(char ContactNumber[]) {
     int flag = 0;
     struct Contact contact;
     FILE *fp_temp = FileProvider(temp_store, append);
@@ -377,16 +377,16 @@ void CurrnetUserContcatList() {
 
 void Details(struct Contact contact) {
 
-    printf("\t\t\t\tFullName : %s %s ", contact.FirstName, contact.LastName);
+    printf("\n\t\t\t\tFullName : %s %s ", contact.FirstName, contact.LastName);
     if (contact.IsFavorite) {
         printf("#Favorite");
     }
-    printf("\n\t\t\t\tNumber: %d ", contact.Number);
+    printf("\n\t\t\t\tNumber: %s ", contact.Number);
     printf("\n\t\t\t\tEmail: %s ", contact.Email);
     printf("\n\t\t\t\tAddress : %s ", contact.Address);
     printf("\n\t\t\t\tCreated By: %s ", contact.RecUserName);
     printf("\n\t\t\t\tCreatedAt: %s ", contact.CreatedAt);
-    printf("\n\n\t\t\t\t------------------------------------------------\n\n");
+    printf("\n\n\t\t\t\t------------------------------------------------\n");
 }
 
 int SaveChanges(struct Contact ReqContact) {
@@ -404,21 +404,21 @@ int SaveChanges(struct Contact ReqContact) {
     return 0;
 }
 
-struct Contact FindByContact(long contactNumber) {
+struct Contact FindByContact(char contactNumber[]) {
     FILE *fp = FileProvider(store, read);
     struct Contact info;
     while (fread(&info, sizeof(info), 1, fp)) {
-        if (info.Number == contactNumber) {
-            fclose(fp);
+    	if(strcmp(info.Number,contactNumber)==0){
+    		fclose(fp);
             return info;
-        }
+		}
     }
     fclose(fp);
     info.IsValid = 0;
     return info;
 }
 
-int EnsureUniqueContact(long newNumber) {
+int EnsureUniqueContact(char newNumber[]) {
     if (FindByContact(newNumber).IsValid) {
         return 1;
     }
@@ -476,7 +476,6 @@ void Display(char text[]) {
     printf("\t\t\t\t[ %s - Login: %s ]\n", text, Username);
     printf("\t\t\t-------------------------------------------------------------\n\n");
 }
-
 void Next() {
     printf("\n\t\t\tPress[Enter] to continue :: ");
     int command = getch();
