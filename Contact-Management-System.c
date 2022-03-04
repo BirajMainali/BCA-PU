@@ -33,7 +33,17 @@ struct Admin {
 };
 void RegisterUser();
 
+void EnsureContactDigit(char contact[]);
+
 void Login();
+
+void NextToRegister();
+
+void NextToLogin();
+
+void EnsureTenDigitContactForCreate(char contact[]);
+
+void EnsureTenDigitContactForUpdate(char contact[]);
 
 void Dashboard();
 
@@ -47,7 +57,7 @@ void Details(struct Contact contact);
 
 int RemoveContact(char contactNumber[]);
 
-void MarkFavorite(long contactNumber);
+void MarkFavorite(char contactNumber[]);
 
 void ViewContactList(char queryFirstName[]);
 
@@ -78,7 +88,7 @@ FILE *fp;
 
 FILE *auth_fp;
 char Username[_max];
-char ContactNumber[];
+char ContactNumber[_max];
 int Favorite;
 
 int main() {
@@ -119,13 +129,13 @@ void RegisterUser() {
     EnsureUniqueUserName(admin.UserName);
     if (strcmp(admin.Password, confirmPassword) != 0) {
         printf("\t\t\tConfirm password is not matching");
-        RegisterUser();
+       NextToRegister();
     }
     auth_fp = FileProvider(authStore, append);
     fwrite(&admin, sizeof(admin), 1, auth_fp);
     fclose(auth_fp);
     printf("%s\n\t\t\tsuccessfully registered\n\n", admin.UserName);
-    Login();
+    NextToLogin();
 }
 
 void EnsureUniqueUserName(char username[]) {
@@ -134,7 +144,7 @@ void EnsureUniqueUserName(char username[]) {
     while (fread(&admin, sizeof(admin), 1, auth_fp)) {
         if (strcmp(admin.UserName, username) == 0) {
             Warning("\t\t\tuser aleady exist");
-            RegisterUser();
+            NextToRegister();
         }
     }
     fclose(auth_fp);
@@ -145,9 +155,9 @@ void Login() {
     char username[_max], password[_max];
     top:
     Display("Login");
-    printf("\t\t\tUserName :: ");
+    printf("\t\t\tUser Name @:: ");
     scanf("%s", username);
-    printf("\t\t\tPasswords:: ");
+    printf("\t\t\tPassword:: ");
     strcpy(password, GetPassword());
     auth_fp = FileProvider(authStore, read);
     while (fread(&admin, sizeof(admin), 1, auth_fp)) {
@@ -158,9 +168,9 @@ void Login() {
         }
     }
     system("cls");
-    printf("\nInvalid username or password\n");
+    printf("\n\t\t\tInvalid username or password\n");
     fclose(auth_fp);
-    goto top;
+    NextToLogin();
 }
 
 void Dashboard() {
@@ -197,8 +207,10 @@ void Dashboard() {
             system("cls");
             Display("Update Contact");
             UpdateContactDetail();
+            Next();
             break;
         case 5:
+            {
             system("cls");
             Display("Remove contact");
             printf("\t\t\t\tEnter contact number to remove: ");
@@ -218,6 +230,8 @@ void Dashboard() {
             } else {
                 printf("\n\t\t\tContact not found");
             }
+            break;
+			}
         case 6:
             system("cls");
             Display("Mark as favorite");
@@ -230,7 +244,7 @@ void Dashboard() {
 			CurrnetUserContcatList();    
 			Next();
 			break;
-		  case 8:
+		case 8:
         	main();
 			break;	
         default:
@@ -262,6 +276,7 @@ void CreateContactDetail() {
     scanf("%d", &Favorite);
     fflush(stdin);
     contact.IsFavorite = Favorite;
+    EnsureTenDigitContactForCreate(contact.Number);
     if (SaveChanges(contact) == 0) {
         printf("\t\t\tContact added successfully\n");
     } else {
@@ -272,7 +287,7 @@ void CreateContactDetail() {
 
 void UpdateContactDetail() {
 	struct Contact contact;
-    long contactNumber;
+    char contactNumber[_max];
     printf("\t\t\tEnter contact number to update: ");
     scanf("%s", &contactNumber);
     struct Contact FoundContact = FindByContact(contactNumber);
@@ -297,14 +312,14 @@ void UpdateContactDetail() {
         scanf("%d", &Favorite);
         fflush(stdin);
         contact.IsFavorite = Favorite;
+        EnsureTenDigitContactForUpdate(contact.Number);
         SaveChanges(Copied);
-        if (RemoveContact(FoundContact.Number) == 0) {
+        if (RemoveContact(FoundContact.Number) != 0) {
             printf("\t\t\tSuccessfully updated.");
+            Details(Copied);
         }
-        Details(Copied);
     } else {
         Warning("\t\t\tContact not found");
-        Next();
     }
 }
 
@@ -331,7 +346,7 @@ int RemoveContact(char ContactNumber[]) {
     return -1;
 }
 
-void MarkFavorite(long contactNumber) {
+void MarkFavorite(char contactNumber[]) {
     struct Contact existingContact = FindByContact(contactNumber);
     if (existingContact.IsValid) {
         struct Contact editable = existingContact;
@@ -480,4 +495,33 @@ void Next() {
     printf("\n\t\t\tPress[Enter] to continue :: ");
     int command = getch();
     command == 13 ? Dashboard() : exit(1);
+}
+void NextToLogin() {
+    printf("\n\t\t\tPress[Enter] to Login :: ");
+    int command = getch();
+    command == 13 ? Login() : exit(1);
+}
+
+void NextToRegister(){
+    printf("\n\t\t\tPress[Enter] to Register :: ");
+    int command = getch();
+    command == 13 ? RegisterUser() : exit(1);
+}
+
+void EnsureTenDigitContactForCreate(char contact[]){
+    if(strlen(contact) < 10){
+        printf("\n\t\t\tContact Number must be grater equals to 10");
+        printf("\n\t\t\tPress[Enter] to re-enter :: \n");
+        int command = getch();
+        command == 13 ? CreateContactDetail() : Dashboard();
+    }
+}
+
+void EnsureTenDigitContactForUpdate(char contact[]){
+    if(strlen(contact) < 10){
+        printf("\n\t\t\tContact Number must be grater equals to 10");
+        printf("\n\t\t\tPress[Enter] to re-enter :: \n");
+        int command = getch();
+        command == 13 ? UpdateContactDetail() : Dashboard();
+    }
 }
