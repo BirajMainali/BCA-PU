@@ -134,7 +134,7 @@ void RegisterUser() {
     auth_fp = FileProvider(authStore, append);
     fwrite(&admin, sizeof(admin), 1, auth_fp);
     fclose(auth_fp);
-    printf("%s\n\t\t\tsuccessfully registered\n\n", admin.UserName);
+    printf("\n%s\t\t\tsuccessfully registered \n\n", admin.UserName);
     NextToLogin();
 }
 
